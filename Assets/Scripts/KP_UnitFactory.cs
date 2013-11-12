@@ -6,7 +6,7 @@ public class KP_UnitFactory : MonoBehaviour {
 	public KP_Unit[] units ;
 	
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 	
 	}
 	

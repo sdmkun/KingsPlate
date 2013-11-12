@@ -20,7 +20,7 @@ public class KP_Board : MonoBehaviour {
 	 */
 	
 	//継承先クラスのStartで呼ぶこと
-	virtual protected void Start () {
+	virtual protected void Awake () {
 		ApplyBoardSize() ;
 	}
 	

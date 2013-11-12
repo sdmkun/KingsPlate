@@ -4,14 +4,13 @@ using System.Collections;
 public class KP_Unit_Ace1 : KP_Unit {
 
 	// Use this for initialization
-	protected override void Start () {
-		base.Start() ;
+	protected override void Awake () {
+		base.Awake() ;
 		InitializeUnit() ;
 	}
 	
 	// Update is called once per frame
 	protected override void Update () {
-		SetPosition(posx, posy) ;
 		//base.Update() ;
 	}
 	

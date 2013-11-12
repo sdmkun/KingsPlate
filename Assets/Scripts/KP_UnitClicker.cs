@@ -12,20 +12,27 @@ public class KP_UnitClicker : MonoBehaviour {
 	
 	
 	// Use this for initialization
-	void Start () {
-	
+	void Awake () {
+		
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown(KeyCode.Mouse0)) {
-			ray = myCamera.ScreenPointToRay(Input.mousePosition);
-			//layerMaskを使用することで当たり判定を行いたいオブジェクトを選択できる
-			if (Physics.Raycast(ray, out hit, Mathf.Infinity)) {
-				clickedObject = hit.collider.gameObject;
-			}
-		}
+		
 	}
 	
+	//指定したレイヤーマスクで左クリックされたオブジェクトを返す(なければnull)
+	public GameObject GetClickedObject(int mask) {
+		clickedObject = null ;
+		if (Input.GetMouseButtonDown(0)) {
+			ray = myCamera.ScreenPointToRay(Input.mousePosition) ;
+			//layerMaskを使用することで当たり判定を行いたいオブジェクトを選択できる
+			//layerMaskで"立っていない"ビットのレイヤに対し当たり判定を調べる
+			if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask)) {
+				clickedObject = hit.collider.gameObject ;
+			}
+		}
+		return clickedObject ;
+	}
 	
 }

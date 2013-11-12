@@ -22,6 +22,7 @@ public class KP_Unit : MonoBehaviour {
 	public int posy ;			//ボード上の位置(上:0)
 	public int dir ;			//ボード上での向き(不明)
 	
+	MeshCollider meshCollider ;
 	/*
 	public enum AREA_MOVABLE {
 		NONE = 0, MOVE, ATTACK, NUM_MAX
@@ -33,10 +34,17 @@ public class KP_Unit : MonoBehaviour {
 	*/
 	
 	// Use this for initialization
-	virtual protected void Start () {
+	virtual protected void Awake () {
 		prefab = (GameObject)Instantiate(prefab) ;
 		prefab.transform.parent = transform ;
 		prefab.name = "SpiritModel" ;
+		//コライダコンポーネント追加（クリックの当たり判定用）
+		meshCollider = gameObject.AddComponent<MeshCollider>() ;
+		meshCollider.sharedMesh = prefab.GetComponent<MeshFilter>().mesh;
+		meshCollider.convex = true;	//メッシュコライダを凸型にする
+		
+		//レイヤーマスク設定
+		gameObject.layer = LayerMask.NameToLayer("UserUnit") ;
 //		modelMesh = (MeshFilter)transform.gameObject.AddComponent("MeshFilter") ;
 //		modelMaterials = (MeshRenderer)transform.gameObject.AddComponent("MeshRenderer") ;
 //		modelMesh.mesh = ((MeshFilter)(prefab.GetComponent("MeshFilter"))).mesh ;
@@ -73,15 +81,12 @@ public class KP_Unit : MonoBehaviour {
 	public void SetPosition (int x, int y) {
 		posx = x ;
 		posy = y ;
-		//Instantiate後 移動処理をしてからprefabの親子関係を登録している気がする
 		transform.position = new Vector3((float)posx - board.areaWidth / 2.0f + 0.5f, 0.85f, -((float)posy - board.areaHeight / 2.0f + 0.5f)) ;
-		//transform.Translate(new Vector3((float)x - board.areaWidth / 2.0f + 0.5f, 0.85f, (float)y - board.areaHeight / 2.0f + 0.5f));
-		//transform.Translate(new Vector3(1.0f, 2.0f, -3.0f));
-		prefab.transform.localPosition = Vector3.zero ;
+		//prefab.transform.localPosition = Vector3.zero ;
 	}
 	
 	void OnGUI () {
-		GUI.Label(new Rect(50 * posx,12 * posy,100,100), "" + ((float)posx - board.areaWidth / 2.0f + 0.5f));
+		//GUI.Label(new Rect(50 * posx,12 * posy,100,100), "" + ((float)posx - board.areaWidth / 2.0f + 0.5f));
 	}
 	
 }

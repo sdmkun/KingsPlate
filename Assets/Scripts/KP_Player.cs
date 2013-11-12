@@ -10,7 +10,7 @@ public class KP_Player : MonoBehaviour {
 	public int movePower ;
 	
 	// Use this for initialization
-	void Start () {
+	void Awake () {
 		Initialize() ;
 	}
 	
