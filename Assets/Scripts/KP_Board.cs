@@ -13,10 +13,10 @@ public class KP_Board : MonoBehaviour {
 	}
 	/*
 	 *	NONE:空き
-	 *	wall:飛び越せない進入不可エリア
-	 *	river:飛び越せる進入不可エリア
-	 *	unit:配置されているユニット
-	 *	num_max:エリア表現の総数
+	 *	WALL:飛び越せない進入不可エリア
+	 *	RIVER:飛び越せる進入不可エリア
+	 *	UNIT:配置されているユニット
+	 *	NUM_MAX:エリア表現の総数
 	 */
 	
 	//継承先クラスのStartで呼ぶこと

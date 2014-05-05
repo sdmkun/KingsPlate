@@ -7,13 +7,13 @@ public class KP_UnitClicker : MonoBehaviour {
 	RaycastHit hit ;
 	public Camera myCamera ;
 	
-	public GameObject clickedObject;
+	public GameObject clickedObject ;
 	
 	
 	
 	// Use this for initialization
 	void Awake () {
-		
+		myCamera = Camera.main ;
 	}
 	
 	// Update is called once per frame

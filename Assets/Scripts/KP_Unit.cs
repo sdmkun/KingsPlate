@@ -58,7 +58,7 @@ public class KP_Unit : MonoBehaviour {
 	}
 	
 	virtual public void InitializeUnit () {
-		
+
 	}
 	
 	virtual public bool[,] GetMovableArea () {

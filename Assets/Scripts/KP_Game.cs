@@ -9,27 +9,33 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+//ボード上の座標を指定するクラス 構造体だと参照渡しにならないため
+public class Point {
+	public int x = 0 ;
+	public int y = 0 ;
+	public Point(int argx, int argy) {
+		x = argx ;
+		y = argy ;
+	}
+}
+
 public class KP_Game : MonoBehaviour {
 	
 	[HideInInspector]public KP_Player[] players ;
-	[HideInInspector] public int playerNum ;		//上のplayersから取得するので代入する必要はない
+	[HideInInspector]public int playerNum ;		//上のplayersから取得するので代入する必要はない
 	
 	public KP_Board board ;							//Prefabが入る
 	
 	[HideInInspector]public List<KP_Panel> panels ;		//(0,0),(1,0),(2,0)...と並ぶ（計算してランダムアクセス可能）
 	public KP_Panel panel ;							//Instantiate用
+	private Point point ;
 	
 	public KP_UnitFactory factory;
-	
-	[HideInInspector]public KP_UnitClicker unitClicker ;
-	GameObject clickedUnit ;						//クリックされたGameObject
-	GameObject selectedUnit ;						//選択中ユニット（キャンセルするまで保持）
-	int maskUserUnit ;								//マスク値
-	int maskUserPanel ;
-	
+
 	[HideInInspector]public int turnPlayer ;
-	[HideInInspector]public PHASE turnPhase;
-	
+	public PHASE turnPhase;
+
+	KP_Unit selectedUnit ;
 	string unitName;
 	
 	public enum PHASE {
@@ -49,39 +55,20 @@ public class KP_Game : MonoBehaviour {
 		board.transform.parent = transform ;
 		
 		//ユニット生成
-		factory = (KP_UnitFactory)GetComponent("KP_UnitFactory") ;
+		factory = GetComponent<KP_UnitFactory>() ;
 		
 		players = new KP_Player[2] ;
 		players[0] = gameObject.AddComponent<KP_Player>() ;
 		players[1] = gameObject.AddComponent<KP_Player>() ;
-		
-		//AddComponentはStart()を呼んでくれないので
-		players[0].Initialize() ;
-		players[1].Initialize() ;
-		
+
 		playerNum = players.Length ;
 		turnPlayer = 0 ;
-		
-		KP_Unit unit = factory.GetUnitInstance(0) ;
-		unit.team = 0 ;
-		unit.SetPosition(0, 1) ;
-		players[0].unitField.Add(unit) ;
-		
-		unit = factory.GetUnitInstance(0) ;
-		unit.team = 0 ;
-		unit.SetPosition(1, 1) ;
-		players[0].unitField.Add(unit) ;
-		
-		unit = factory.GetUnitInstance(0) ;
-		unit.team = 1 ;
-		unit.SetPosition(0, 0) ;
-		players[1].unitField.Add(unit) ;
-		
-		unit = factory.GetUnitInstance(0) ;
-		unit.team = 1 ;
-		unit.SetPosition(1, 0) ;
-		players[1].unitField.Add(unit) ;
-		
+
+		PlaceUnit(0, 0, 0, 1) ;
+		PlaceUnit(0, 0, 1, 1) ;
+		PlaceUnit(0, 1, 0, 0) ;
+		PlaceUnit(0, 1, 1, 0) ;
+
 		//パネル生成
 		panels = new List<KP_Panel>() ;
 		KP_Panel panelInstance ;
@@ -93,14 +80,6 @@ public class KP_Game : MonoBehaviour {
 				panelInstance.transform.parent = transform ;
 			}
 		}
-		panels[0 + 1 * board.areaWidth].EnableDisplay(KP_Panel.TYPE.MOVE) ;
-		panels[1 + 2 * board.areaWidth].EnableDisplay(KP_Panel.TYPE.ATTACK) ;
-		panels[2 + 3 * board.areaWidth].EnableDisplay(KP_Panel.TYPE.SUMMON) ;
-		
-		//クリック選択コンポーネント登録
-		unitClicker = GetComponent<KP_UnitClicker>() ;
-		maskUserUnit = LayerMask.NameToLayer("UserUnit") ;
-		maskUserPanel = LayerMask.NameToLayer("UserPanel") ;
 		
 		//配列にデリゲートでフェイズのメソッドを格納
 		setPhase = new SetPhase[(int)PHASE.NUM_MAX] ;
@@ -115,14 +94,14 @@ public class KP_Game : MonoBehaviour {
 		setPhase[(int)PHASE.TURNEND] = new SetPhase(SetTurnend);
 		playPhase = new PlayPhase[(int)PHASE.NUM_MAX] ;
 		playPhase[(int)PHASE.UPKEEP] = new PlayPhase(PlayUpkeep) ;
-		playPhase[(int)PHASE.MAIN] = new PlayPhase(SetMain);
-		playPhase[(int)PHASE.MOVE] = new PlayPhase(SetMove);
-		playPhase[(int)PHASE.ATTACK] = new PlayPhase(SetAttack);
-		playPhase[(int)PHASE.ATTACKEND] = new PlayPhase(SetAttackend);
-		playPhase[(int)PHASE.MOVEEND] = new PlayPhase(SetMoveend);
-		playPhase[(int)PHASE.SUMMON] = new PlayPhase(SetSummon);
-		playPhase[(int)PHASE.SUMMONEND] = new PlayPhase(SetSummonend);
-		playPhase[(int)PHASE.TURNEND] = new PlayPhase(SetTurnend);
+		playPhase[(int)PHASE.MAIN] = new PlayPhase(PlayMain);
+		playPhase[(int)PHASE.MOVE] = new PlayPhase(PlayMove);
+		playPhase[(int)PHASE.ATTACK] = new PlayPhase(PlayAttack);
+		playPhase[(int)PHASE.ATTACKEND] = new PlayPhase(PlayAttackend);
+		playPhase[(int)PHASE.MOVEEND] = new PlayPhase(PlayMoveend);
+		playPhase[(int)PHASE.SUMMON] = new PlayPhase(PlaySummon);
+		playPhase[(int)PHASE.SUMMONEND] = new PlayPhase(PlaySummonend);
+		playPhase[(int)PHASE.TURNEND] = new PlayPhase(PlayTurnend);
 		//アップキープフェイズから開始
 		ChangePhase(PHASE.UPKEEP) ;
 	}
@@ -134,6 +113,7 @@ public class KP_Game : MonoBehaviour {
 	
 	public void ChangeTurn() {
 		turnPlayer = (++turnPlayer) % playerNum ;
+		ChangePhase(PHASE.UPKEEP) ;
 	}
 	
 	public void ChangePhase(PHASE phase) {
@@ -161,25 +141,68 @@ public class KP_Game : MonoBehaviour {
 	}
 	
 	public void PlayMain() {
-		clickedUnit = unitClicker.GetClickedObject(maskUserUnit) ;
-		if(clickedUnit) {
-			selectedUnit = clickedUnit ;
+		//プレイヤが座標を選択して返してくる
+		point = players[turnPlayer].PlayMain() ;
+		if( point != null ) {
+			selectedUnit = board.areaUnit[point.x, point.y] ;
 			ChangePhase(PHASE.MOVE) ;
+			return ;
 		}
 	}
 	
 	//MOVE PHASE
 	public void SetMove() {
-		
+		point = null ;
+		bool[,] movableArea ;
+		if( selectedUnit.GetComponent<KP_Unit>() ) {
+//			Debug.Log ( selectedUnit.GetComponent<KP_Unit>().GetMovableArea() ) ;
+			movableArea = selectedUnit.GetComponent<KP_Unit>().GetMovableArea() ;
+			for(int y = 0; y < board.areaHeight; ++y) {
+				for(int x = 0; x < board.areaWidth; ++x) {
+					if(movableArea[x, y]) {
+						if(board.areaUnit[x, y]) {
+							panels[x + y * board.areaWidth].EnableDisplay(KP_Panel.TYPE.ATTACK) ;
+						} else {
+							panels[x + y * board.areaWidth].EnableDisplay(KP_Panel.TYPE.MOVE) ;
+						}
+					} else {
+						panels[x + y * board.areaWidth].DisableDisplay() ;
+					}
+				}
+			}
+		}
 	}
 	
 	public void PlayMove() {
-		//プレイヤから移動先を受け取る（無効ならRejectする）
+		//プレイヤが座標を選択して返してくる
+		point = players[turnPlayer].PlayMove() ;
+		if( point != null ) {
+			for(int y = 0; y < board.areaHeight; ++y) {
+				for(int x = 0; x < board.areaWidth; ++x) {
+					panels[x + y * board.areaWidth].DisableDisplay() ;
+				}
+			}
+			//右クリックで選択をキャンセル（選択座標がエリア外or無効な座標）
+			if( point.x < 0 || point.x > board.areaWidth || point.y < 0 || point.y > board.areaHeight ||
+				  									 	!(selectedUnit.GetComponent<KP_Unit>().GetMovableArea()[point.x, point.y]) ) {
+				selectedUnit = null ;
+				ChangePhase(PHASE.MAIN) ;
+				return ;
+			} else {	//移動（攻撃）可能な座標であれば移動or攻撃判定
+				if(board.areaField[point.x, point.y] == KP_Board.AREA.NONE) {
+					MoveUnit(selectedUnit, point.x, point.y) ;
+					ChangePhase(PHASE.MOVEEND) ;
+				} else {
+					ChangePhase (PHASE.ATTACK) ;
+				}
+			}
+		}
 	}
 	
 	//ATTACK PHASE
 	public void SetAttack() {
-		
+		MoveUnit(selectedUnit, point.x, point.y) ;
+		ChangePhase(PHASE.ATTACKEND) ;
 	}
 	
 	public void PlayAttack() {
@@ -188,7 +211,7 @@ public class KP_Game : MonoBehaviour {
 	
 	//ATTACKEND PHASE
 	public void SetAttackend() {
-		
+		ChangePhase(PHASE.MOVEEND) ;
 	}
 	
 	public void PlayAttackend() {
@@ -197,7 +220,8 @@ public class KP_Game : MonoBehaviour {
 	
 	//MOVEEND PHASE
 	public void SetMoveend() {
-		
+		selectedUnit = null ;
+		ChangePhase(PHASE.TURNEND) ;
 	}
 	
 	public void PlayMoveend() {
@@ -224,16 +248,36 @@ public class KP_Game : MonoBehaviour {
 	
 	//TURNEND PHASE
 	public void SetTurnend() {
-		
+		ChangeTurn () ;
 	}
 	
 	public void PlayTurnend() {
 		
 	}
+
+	//ユニットを生成して配置する
+	private void PlaceUnit(int type, int team, int x, int y) {
+		KP_Unit unit = factory.GetUnitInstance(type) ;
+		unit.team = team ;
+		unit.SetPosition(x, y) ;
+		unit.InitializeUnit() ;		//team情報などの設定
+		players[team].unitField.Add(unit) ;
+		board.areaUnit[x, y] = unit ;
+	}
+
+	//ユニットを移動する 移動先に既に他のユニットがいれば取得する<=未実装
+	private void MoveUnit(KP_Unit unit, int x, int y) {
+		if(board.areaUnit[x, y]) {
+			Destroy(board.areaUnit[x, y].gameObject) ;
+		}
+		board.areaUnit[selectedUnit.posx, selectedUnit.posy] = null ;
+		board.areaUnit[x, y] = selectedUnit ;
+		selectedUnit.SetPosition(x, y) ;
+	}
 	
 	void OnGUI () {
 		/*
-		 * //最後にクリックされたユニットの名前を返す
+		//最後にクリックされたユニットの名前を返す
 		if( GetComponent<KP_UnitClicker>().GetClickedObject( ~(LayerMask.NameToLayer("UserUnit") | LayerMask.NameToLayer("UserPanel")) ) ) {
 			unitName = GetComponent<KP_UnitClicker>().GetClickedObject(~(LayerMask.NameToLayer("UserUnit") | LayerMask.NameToLayer("UserPanel"))).name ;
 		}

@@ -21,6 +21,8 @@ public class KP_Unit_Ace1 : KP_Unit {
 		} else {
 			unitName = "DEMON" ;
 		}
+		prefab.renderer.material.color = new Color(team == 1 ? 1.0f : 0.2f, 0.2f, team == 0 ? 1.0f : 0.2f, 1.0f) ;
+
 		summonCost = 1 ;
 		summonPower = 0 ;
 		rank = 1 ;
@@ -47,16 +49,14 @@ public class KP_Unit_Ace1 : KP_Unit {
 				if(vx == 0 && vy == 0) {
 					continue ;
 				}
-				for(y = posy; (y >= 0 && y < board.areaHeight); y += vy) {
-					for(x = posx; (x >= 0 && x < board.areaWidth); x += vx) {
-						if(area[x, y] == (int)KP_Board.AREA.NONE) {		//何もなければ移動可能
-							movableArea[x, y] = true ;
-						} else if(area[x, y] == (int)KP_Board.AREA.UNIT && board.areaUnit[x, y]) {	//敵ユニットなら攻撃可能エリアとなる
-							movableArea[x, y] = true ;
-							continue ;
-						} else {
-							continue ;
-						}
+				for(x = posx + vx, y = posy + vy; (x >= 0 && x < board.areaWidth) && (y >= 0 && y < board.areaHeight) ; x += vx, y += vy) {
+					if(area[x, y] == (int)KP_Board.AREA.NONE) {		//何もなければ移動可能
+						movableArea[x, y] = true ;
+					} else if(board.areaUnit[x, y] && board.areaUnit[x, y].team != team) {	//敵ユニットなら攻撃可能エリアとなる
+						movableArea[x, y] = true ;
+						break ;
+					} else {
+						break ;
 					}
 				}
 			}

@@ -17,6 +17,7 @@ public class KP_BoardLevel1 : KP_Board {
 									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.WALL},
 									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
 									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE} } ;
+		areaUnit = new KP_Unit[areaWidth, areaHeight] ;
 		base.Awake() ;
 	}
 	
