@@ -3,14 +3,16 @@ using System.Collections;
 
 public class KP_Board : MonoBehaviour {
 	
-	public int areaWidth;		//マップ幅
-	public int areaHeight;		//マップ長さ
-	public AREA[,] areaField;		//マップに配置されている障害物など
-	public KP_Unit[,] areaUnit;	//マップに配置されているユニット
-	
+	[HideInInspector]public int areaWidth;		//マップ幅
+	[HideInInspector]public int areaHeight;		//マップ長さ
+	[HideInInspector]public AREA[,] areaField;	//マップに配置されている障害物など
+	[HideInInspector]public KP_Unit[,] areaUnit;	//マップに配置されているユニット
+
 	public enum AREA {
 		NONE = 0, WALL, RIVER, UNIT, NUM_MAX
 	}
+	public GameObject[] areaFieldPrefab = new GameObject[(int)AREA.NUM_MAX] ;
+	protected GameObject[,] areaFieldObject ;
 	/*
 	 *	NONE:空き
 	 *	WALL:飛び越せない進入不可エリア
@@ -21,17 +23,33 @@ public class KP_Board : MonoBehaviour {
 	
 	//継承先クラスのStartで呼ぶこと
 	virtual protected void Awake () {
+		areaFieldObject = new GameObject[areaWidth, areaHeight] ;
 		ApplyBoardSize() ;
+		DisplayAreaField() ;
 	}
 	
 	// Update is called once per frame
 	virtual protected void Update () {
-	
+		
 	}
 	
 	//ボードのwidth,heightに合わせて盤面のサイズを変更
 	protected void ApplyBoardSize () {
 		transform.localScale = new Vector3(areaWidth, transform.localScale.y, areaHeight) ;
+	}
+	//ボードのエリア表現（障害物等）を表示
+	protected void DisplayAreaField() {
+		for(int y = 0; y < areaHeight; ++y) {
+			for(int x = 0; x < areaWidth; ++x) {
+				if(areaFieldObject[x, y]) {
+					Destroy(areaFieldObject[x, y]) ;
+				}
+				if(areaFieldPrefab[(int)areaField[x, y]] != null) {
+					areaFieldObject[x, y] = (GameObject)Instantiate( areaFieldPrefab[ (int)areaField[x, y] ] ) ;
+					areaFieldObject[x, y].transform.position = new Vector3((float)x - areaWidth / 2.0f + 0.5f, areaFieldObject[x, y].transform.position.y, -((float)y - areaHeight / 2.0f + 0.5f)) ;
+				}
+			}
+		}
 	}
 	
 	virtual public int[,] GetMovableArea () {

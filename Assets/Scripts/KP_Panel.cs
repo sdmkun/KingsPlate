@@ -2,7 +2,6 @@
  * 移動可能エリアなどを示すパネル（マス目）ブロックにアサインする
  * 色を変えたり簡単に消したりする（？）
  * 普段はレンダリングせず必要なときに色を変えて表示する
- * クリックしたらその座標を返してくれるといい（UnitClickerの役目か）
  */
 
 using UnityEngine;
@@ -52,13 +51,13 @@ public class KP_Panel : MonoBehaviour {
 
 		switch(type) {
 		case TYPE.MOVE :			//移動範囲は青色
-			renderer.material.color = new Color(0.5f, 0.5f, 1.0f, 0.5f) ;
+			renderer.material.color = new Color(0.4f, 0.4f, 1.0f, 0.7f) ;
 			break ;
 		case TYPE.ATTACK :			//攻撃範囲は赤色
-			renderer.material.color = new Color(1.0f, 0.5f, 0.5f, 0.5f) ;
+			renderer.material.color = new Color(1.0f, 0.4f, 0.4f, 0.7f) ;
 			break ;
 		case TYPE.SUMMON :			//召喚範囲は緑色
-			renderer.material.color = new Color(0.5f, 1.0f, 0.5f, 0.5f) ;
+			renderer.material.color = new Color(0.4f, 1.0f, 0.4f, 0.7f) ;
 			break ;
 		default :
 			break;

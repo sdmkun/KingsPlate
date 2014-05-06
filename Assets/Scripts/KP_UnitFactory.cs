@@ -19,6 +19,7 @@ public class KP_UnitFactory : MonoBehaviour {
 	public KP_Unit GetUnitInstance (int unitId) {
 		KP_Unit unit = (KP_Unit)Instantiate(units[unitId]) ;
 		unit.transform.parent = transform ;
+		unit.game = GetComponent<KP_Game>() ;
 		unit.board = GetComponent<KP_Game>().board ;
 		return unit ;
 	}

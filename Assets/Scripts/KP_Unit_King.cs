@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class KP_Unit_Ace1 : KP_Unit {
-
+public class KP_Unit_King : KP_Unit {
+	
 	// Use this for initialization
 	protected override void Awake () {
 		base.Awake() ;
-		InitializeUnit() ;
 	}
 	
 	// Update is called once per frame
@@ -15,23 +14,22 @@ public class KP_Unit_Ace1 : KP_Unit {
 	}
 	
 	public override void InitializeUnit () {
-		unitId = 1 ;
-		if(team == 1) {
-			unitName = "SPIRIT" ;
+		base.InitializeUnit() ;
+		unitId = 13 ;
+		if(team == 0) {
+			unitName = "KING" ;
 		} else {
-			unitName = "DEMON" ;
+			unitName = "KING" ;
 		}
-		prefab.renderer.material.color = new Color(team == 1 ? 1.0f : 0.2f, 0.2f, team == 0 ? 1.0f : 0.2f, 1.0f) ;
-
+		
 		summonCost = 1 ;
-		summonPower = 0 ;
+		summonPower = 1 ;
 		rank = 1 ;
 		
 		return;
 	}
 	
 	public override bool[,] GetMovableArea () {
-		int[,] area = board.GetMovableArea() ;
 		bool[,] movableArea = new bool[board.areaWidth, board.areaHeight] ;
 		int x ;
 		int y ;
@@ -49,14 +47,13 @@ public class KP_Unit_Ace1 : KP_Unit {
 				if(vx == 0 && vy == 0) {
 					continue ;
 				}
-				for(x = posx + vx, y = posy + vy; (x >= 0 && x < board.areaWidth) && (y >= 0 && y < board.areaHeight) ; x += vx, y += vy) {
-					if(area[x, y] == (int)KP_Board.AREA.NONE) {		//何もなければ移動可能
+				x = posx + vx ;
+				y = posy + vy ;
+				if(x >= 0 && x < board.areaWidth && y >= 0 && y < board.areaHeight) {
+					if(board.areaField[x, y] == (int)KP_Board.AREA.NONE && !board.areaUnit[x, y]) {		//何もなければ移動可能
 						movableArea[x, y] = true ;
 					} else if(board.areaUnit[x, y] && board.areaUnit[x, y].team != team) {	//敵ユニットなら攻撃可能エリアとなる
 						movableArea[x, y] = true ;
-						break ;
-					} else {
-						break ;
 					}
 				}
 			}
@@ -64,21 +61,18 @@ public class KP_Unit_Ace1 : KP_Unit {
 		
 		return movableArea ;
 	}
-	
-	public override bool[,] GetSummonableArea () {
-		int[,] area = board.GetSummonableArea() ;
-		bool[,] summonableArea = new bool[board.areaWidth, board.areaHeight] ;
-		
-		for(int y = 0; y < board.areaHeight; ++y) {
-			for(int x = 0; x < board.areaWidth; ++x) {
-				if(area[x, y] == (int)KP_Board.AREA.NONE) {
-					summonableArea[x, y] = true ;
-				} else {
-					summonableArea[x, y] = false ;
-				}
+
+	override public void Die () {
+		for(int i = 0; i < game.playerNum; ++i) {
+			if(i != team) {
+				game.winners[i] = true ;
 			}
 		}
-		
+		base.Die() ;
+	}
+	
+	public override bool[,] GetSummonableArea () {
+		bool[,] summonableArea = base.GetSummonableArea() ;
 		return summonableArea ;
 	}
 	

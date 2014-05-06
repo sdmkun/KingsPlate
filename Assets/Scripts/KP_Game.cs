@@ -23,6 +23,8 @@ public class KP_Game : MonoBehaviour {
 	
 	[HideInInspector]public KP_Player[] players ;
 	[HideInInspector]public int playerNum ;		//上のplayersから取得するので代入する必要はない
+	[HideInInspector]public bool[] winners ;	//勝利フラグ
+	[HideInInspector]public List<KP_Unit>[] unitsCaptured ;	//持ち駒Unit
 	
 	public KP_Board board ;							//Prefabが入る
 	
@@ -59,15 +61,23 @@ public class KP_Game : MonoBehaviour {
 		
 		players = new KP_Player[2] ;
 		players[0] = gameObject.AddComponent<KP_Player>() ;
+		players[0].team = 0 ;
 		players[1] = gameObject.AddComponent<KP_Player>() ;
+		players[1].team = 1 ;
 
 		playerNum = players.Length ;
 		turnPlayer = 0 ;
+		winners = new bool[playerNum] ;	//既定値はfalse
+		unitsCaptured = new List<KP_Unit>[playerNum] ;
+		unitsCaptured[0] = new List<KP_Unit>() ;
+		unitsCaptured[1] = new List<KP_Unit>() ;
 
-		PlaceUnit(0, 0, 0, 1) ;
-		PlaceUnit(0, 0, 1, 1) ;
-		PlaceUnit(0, 1, 0, 0) ;
-		PlaceUnit(0, 1, 1, 0) ;
+		PlaceUnit(2, 0, 0, 3) ;
+		PlaceUnit(3, 0, 1, 3) ;
+		PlaceUnit(13,0, 2, 3) ;
+		PlaceUnit(2, 1, 2, 0) ;
+		PlaceUnit(3, 1, 1, 0) ;
+		PlaceUnit(13,1, 0, 0) ;
 
 		//パネル生成
 		panels = new List<KP_Panel>() ;
@@ -141,11 +151,14 @@ public class KP_Game : MonoBehaviour {
 	}
 	
 	public void PlayMain() {
-		//プレイヤが座標を選択して返してくる
-		point = players[turnPlayer].PlayMain() ;
-		if( point != null ) {
-			selectedUnit = board.areaUnit[point.x, point.y] ;
-			ChangePhase(PHASE.MOVE) ;
+		//プレイヤが移動するユニットまたは召喚するユニットを選択して返してくる
+		selectedUnit = players[turnPlayer].PlayMain() ;
+		if( selectedUnit != null && selectedUnit.team == turnPlayer ) {
+			if(!selectedUnit.isCaptured) {
+				ChangePhase(PHASE.MOVE) ;
+			} else {
+				ChangePhase(PHASE.SUMMON) ;
+			}
 			return ;
 		}
 	}
@@ -230,16 +243,50 @@ public class KP_Game : MonoBehaviour {
 	
 	//SUMMON PHASE
 	public void SetSummon() {
-		
+		point = null ;
+		bool[,] summonableArea ;
+		if( selectedUnit.GetComponent<KP_Unit>() ) {
+			//			Debug.Log ( selectedUnit.GetComponent<KP_Unit>().GetMovableArea() ) ;
+			summonableArea = selectedUnit.GetComponent<KP_Unit>().GetSummonableArea() ;
+			for(int y = 0; y < board.areaHeight; ++y) {
+				for(int x = 0; x < board.areaWidth; ++x) {
+					if(summonableArea[x, y]) {
+						panels[x + y * board.areaWidth].EnableDisplay(KP_Panel.TYPE.SUMMON) ;
+					} else {
+						panels[x + y * board.areaWidth].DisableDisplay() ;
+					}
+				}
+			}
+		}
 	}
 	
 	public void PlaySummon() {
-		
+		//プレイヤが座標を選択して返してくる
+		point = players[turnPlayer].PlayMove() ;
+		if( point != null ) {
+			for(int y = 0; y < board.areaHeight; ++y) {
+				for(int x = 0; x < board.areaWidth; ++x) {
+					panels[x + y * board.areaWidth].DisableDisplay() ;
+				}
+			}
+			//右クリックで選択をキャンセル（選択座標がエリア外or無効な座標）
+			if( point.x < 0 || point.x > board.areaWidth || point.y < 0 || point.y > board.areaHeight ||
+			   !(selectedUnit.GetComponent<KP_Unit>().GetSummonableArea()[point.x, point.y]) ) {
+				selectedUnit = null ;
+				ChangePhase(PHASE.MAIN) ;
+				return ;
+			} else {	//召喚可能な座標であれば召喚
+				if(board.areaField[point.x, point.y] == KP_Board.AREA.NONE) {
+					SummonUnit(selectedUnit, turnPlayer, point.x, point.y) ;
+					ChangePhase(PHASE.SUMMONEND) ;
+				}
+			}
+		}
 	}
 	
 	//SUMMONEND PHASE
 	public void SetSummonend() {
-		
+		ChangePhase(PHASE.TURNEND) ;
 	}
 	
 	public void PlaySummonend() {
@@ -256,26 +303,53 @@ public class KP_Game : MonoBehaviour {
 	}
 
 	//ユニットを生成して配置する
-	private void PlaceUnit(int type, int team, int x, int y) {
-		KP_Unit unit = factory.GetUnitInstance(type) ;
+	public void PlaceUnit(int unitId, int team, int x, int y) {
+		KP_Unit unit = factory.GetUnitInstance(unitId) ;
 		unit.team = team ;
 		unit.SetPosition(x, y) ;
 		unit.InitializeUnit() ;		//team情報などの設定
-		players[team].unitField.Add(unit) ;
 		board.areaUnit[x, y] = unit ;
 	}
 
-	//ユニットを移動する 移動先に既に他のユニットがいれば取得する<=未実装
-	private void MoveUnit(KP_Unit unit, int x, int y) {
+	//ユニットを移動する 移動先に既に他のユニットがいれば取得する
+	public void MoveUnit(KP_Unit unit, int x, int y) {
 		if(board.areaUnit[x, y]) {
-			Destroy(board.areaUnit[x, y].gameObject) ;
+			CaptureUnit(board.areaUnit[x, y].unitId, unit.team) ;
+			board.areaUnit[x, y].GetComponent<KP_Unit>().Die() ;
 		}
 		board.areaUnit[selectedUnit.posx, selectedUnit.posy] = null ;
 		board.areaUnit[x, y] = selectedUnit ;
 		selectedUnit.SetPosition(x, y) ;
 	}
+
+	//ユニットを持ち駒に加える 
+	public void CaptureUnit(int unitId, int team) {
+		KP_Unit unit = factory.GetUnitInstance(unitId) ;
+		unit.team = team ;
+		unit.isCaptured = true ;
+		unit.InitializeUnit() ;
+		unitsCaptured[team].Add(unit) ;
+		for(int i = 0; i < unitsCaptured[team].Count; ++i) {
+			unit = unitsCaptured[team][i] ;
+			unit.transform.position = new Vector3(2.5f, 0.0f, i * (0.5f - team) + 3.0f * (team - 0.5f) ) ;
+			unit.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f) ;
+		}
+	}
+
+	//持ち駒を打つ
+	public void SummonUnit(KP_Unit unit, int team, int x, int y) {
+		PlaceUnit(unit.unitId, team, x, y) ;
+		unitsCaptured[team].Remove(unit) ;		//Dieではないが,Destroyされるか分からない
+		Destroy(unit.gameObject) ;
+	}
 	
 	void OnGUI () {
+		GUI.Label(new Rect(0, 0, 200, 40), "Player " + (turnPlayer + 1) + "'s Turn" );
+		for(int i = 0; i < playerNum; ++i) {
+			if(winners[i]) {
+				GUI.Label(new Rect(0, i * 20 + 20, 200, 40), "Winner is  Player " + (i + 1) );
+			}
+		}
 		/*
 		//最後にクリックされたユニットの名前を返す
 		if( GetComponent<KP_UnitClicker>().GetClickedObject( ~(LayerMask.NameToLayer("UserUnit") | LayerMask.NameToLayer("UserPanel")) ) ) {
