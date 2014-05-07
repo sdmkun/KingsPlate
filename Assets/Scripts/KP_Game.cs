@@ -90,19 +90,19 @@ public class KP_Game : MonoBehaviour {
 		unitsCaptured[1] = new List<KP_Unit>() ;
 		replayFlag = false ;
 
-		PlaceUnit(13,0, 0, 5) ;
-		PlaceUnit(4, 0, 1, 5) ;
-		PlaceUnit(6, 0, 2, 5) ;
-		PlaceUnit(5, 0, 0, 4) ;
-		PlaceUnit(3, 0, 1, 4) ;
-		PlaceUnit(2, 0, 0, 3) ;
+		PlaceUnit(13,0, 0, 4) ;
+		PlaceUnit(4, 0, 1, 4) ;
+		PlaceUnit(6, 0, 2, 4) ;
+		PlaceUnit(5, 0, 0, 3) ;
+		PlaceUnit(3, 0, 1, 3) ;
+		PlaceUnit(2, 0, 0, 2) ;
 
-		PlaceUnit(13,1, 5, 0) ;
-		PlaceUnit(4, 1, 4, 0) ;
-		PlaceUnit(6, 1, 3, 0) ;
-		PlaceUnit(5, 1, 5, 1) ;
-		PlaceUnit(3, 1, 4, 1) ;
-		PlaceUnit(2, 1, 5, 2) ;
+		PlaceUnit(13,1, 4, 0) ;
+		PlaceUnit(4, 1, 3, 0) ;
+		PlaceUnit(6, 1, 2, 0) ;
+		PlaceUnit(5, 1, 4, 1) ;
+		PlaceUnit(3, 1, 3, 1) ;
+		PlaceUnit(2, 1, 4, 2) ;
 
 		//パネル生成
 		panels = new List<KP_Panel>() ;
@@ -435,7 +435,7 @@ public class KP_Game : MonoBehaviour {
 		unitsCaptured[team].Add(unit) ;
 		for(int i = 0; i < unitsCaptured[team].Count; ++i) {
 			unit = unitsCaptured[team][i] ;
-			unit.transform.position = new Vector3(3.2f, 0.0f, i * (0.5f - team) + 4.5f * (team - 0.5f) ) ;
+			unit.transform.position = new Vector3(2.7f, 0.0f, i * (0.5f - team) + 4.0f * (team - 0.5f) ) ;
 			unit.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f) ;
 		}
 	}

@@ -19,7 +19,7 @@ public class KP_Unit_6 : KP_Unit {
 		if(team == 0) {
 			unitName = "SCOUT" ;
 		} else {
-			unitName = "OAK" ;
+			unitName = "ORK" ;
 		}
 
 		InitializeStatus() ;

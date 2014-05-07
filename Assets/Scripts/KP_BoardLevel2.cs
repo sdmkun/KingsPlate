@@ -10,15 +10,14 @@ public class KP_BoardLevel2 : KP_Board {
 
 	// Use this for initialization
 	protected override void Awake () {
-		areaWidth = 6 ;
-		areaHeight = 6 ;
+		areaWidth = 5 ;
+		areaHeight = 5 ;
 		//マップ地形は外部ファイル（Excelとか）から読み込めるようにする予定
-		areaField = new AREA[,]{	{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
-									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
-									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
-									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
-									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
-									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},	} ;
+		areaField = new AREA[,]{	{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
+									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
+									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
+									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
+									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},	} ;
 		areaUnit = new KP_Unit[areaWidth, areaHeight] ;
 
 		base.Awake() ;
