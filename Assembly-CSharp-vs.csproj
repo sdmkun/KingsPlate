@@ -48,6 +48,8 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\KP_Board.cs" />
      <Compile Include="Assets\Scripts\KP_BoardLevel1.cs" />
+     <Compile Include="Assets\Scripts\KP_BoardLevel2.cs" />
+     <Compile Include="Assets\Scripts\KP_GUIController.cs" />
      <Compile Include="Assets\Scripts\KP_Game.cs" />
      <Compile Include="Assets\Scripts\KP_Panel.cs" />
      <Compile Include="Assets\Scripts\KP_Player.cs" />
@@ -55,9 +57,20 @@
      <Compile Include="Assets\Scripts\KP_UnitClicker.cs" />
      <Compile Include="Assets\Scripts\KP_UnitFactory.cs" />
      <Compile Include="Assets\Scripts\KP_Unit_1.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_10.cs" />
      <Compile Include="Assets\Scripts\KP_Unit_2.cs" />
      <Compile Include="Assets\Scripts\KP_Unit_3.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_4.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_5.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_6.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_7.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_8.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_9.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_Jack.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_Jester.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_Joker.cs" />
      <Compile Include="Assets\Scripts\KP_Unit_King.cs" />
+     <Compile Include="Assets\Scripts\KP_Unit_Queen.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

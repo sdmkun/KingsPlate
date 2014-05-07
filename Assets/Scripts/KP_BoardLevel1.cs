@@ -17,19 +17,12 @@ public class KP_BoardLevel1 : KP_Board {
 									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},
 									{AREA.NONE,	AREA.NONE,	AREA.NONE,	AREA.NONE},	} ;
 		areaUnit = new KP_Unit[areaWidth, areaHeight] ;
+
 		base.Awake() ;
 	}
 	
 	// Update is called once per frame
 	protected override void Update () {
 		
-	}
-	
-	public override int[,] GetMovableArea () {
-		return base.GetMovableArea() ;
-	}
-	
-	public override int[,] GetSummonableArea () {
-		return base.GetSummonableArea() ;
 	}
 }
