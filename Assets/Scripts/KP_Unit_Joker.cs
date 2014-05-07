@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class KP_Unit_1 : KP_Unit {
+public class KP_Unit_Joker : KP_Unit {
 
 	// Use this for initialization
 	protected override void Awake () {
@@ -15,11 +15,11 @@ public class KP_Unit_1 : KP_Unit {
 	
 	public override void InitializeUnit () {
 		base.InitializeUnit() ;
-		unitId = 1 ;
+		unitId = 0 ;
 		if(team == 0) {
-			unitName = "SPIRIT" ;
+			unitName = "GIANT" ;
 		} else {
-			unitName = "DEMON" ;
+			unitName = "OGRE" ;
 		}
 
 		InitializeStatus() ;
@@ -28,8 +28,8 @@ public class KP_Unit_1 : KP_Unit {
 	}
 
 	public override void InitializeStatus () {
-		summonCost = 1 ;
-		rank = 1 ;
+		summonCost = 2 ;
+		rank = 3 ;
 	}
 	
 	public override bool[,] GetMovableArea () {
@@ -44,26 +44,31 @@ public class KP_Unit_1 : KP_Unit {
 			}
 		}
 		
-		//キングには攻撃できない
+		//ユニットの移動範囲に合わせて
 		for(int vy = -1; vy <= 1; ++vy) {
 			for(int vx = -1; vx <= 1; ++vx) {
-				if(vx == 0 && vy == 0) {
+				//x,y変位のどちらも0（変位なし） もしくはどちらも0でない（斜め移動）場合は処理しない
+				if( (vx == 0 && vy == 0) || (vx != 0 && vy != 0) ) {
 					continue ;
 				}
-				for(x = posx + vx, y = posy + vy; (x >= 0 && x < board.areaWidth) && (y >= 0 && y < board.areaHeight) ; x += vx, y += vy) {
-					if( board.GetMovableArea()[x, y] ) {		//何もなければ移動可能
+				x = posx + vx ;
+				y = posy + vy ;
+				if(x >= 0 && x < board.areaWidth && y >= 0 && y < board.areaHeight) {
+					if(board.areaField[x, y] == (int)KP_Board.AREA.NONE && !board.areaUnit[x, y]) {		//何もなければ移動可能
 						movableArea[x, y] = true ;
-					} else if(IsThereAttackableEnemy(x, y) && board.areaUnit[x, y].unitId != 13) {		//キングでない敵ユニットなら攻撃可能エリアとなる
+					} else if(board.areaUnit[x, y] && board.areaUnit[x, y].team != team) {	//敵ユニットなら攻撃可能エリアとなる
 						movableArea[x, y] = true ;
-						break ;
-					} else {
-						break ;
 					}
 				}
 			}
 		}
 		
 		return movableArea ;
+	}
+	
+	public override bool[,] GetSummonableArea () {
+		bool[,] summonableArea = base.GetSummonableArea() ;
+		return summonableArea ;
 	}
 	
 }

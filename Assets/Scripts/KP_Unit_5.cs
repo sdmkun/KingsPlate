@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class KP_Unit_1 : KP_Unit {
+public class KP_Unit_5 : KP_Unit {
 
 	// Use this for initialization
 	protected override void Awake () {
@@ -15,11 +15,11 @@ public class KP_Unit_1 : KP_Unit {
 	
 	public override void InitializeUnit () {
 		base.InitializeUnit() ;
-		unitId = 1 ;
+		unitId = 5 ;
 		if(team == 0) {
-			unitName = "SPIRIT" ;
+			unitName = "ARCHER" ;
 		} else {
-			unitName = "DEMON" ;
+			unitName = "HARPY" ;
 		}
 
 		InitializeStatus() ;
@@ -43,19 +43,26 @@ public class KP_Unit_1 : KP_Unit {
 				movableArea[x, y] = false ;
 			}
 		}
-		
-		//キングには攻撃できない
+
+		bool jumped ;	//敵ユニット1体またはWALLを一つ飛び越えることができる
 		for(int vy = -1; vy <= 1; ++vy) {
-			for(int vx = -1; vx <= 1; ++vx) {
-				if(vx == 0 && vy == 0) {
-					continue ;
-				}
-				for(x = posx + vx, y = posy + vy; (x >= 0 && x < board.areaWidth) && (y >= 0 && y < board.areaHeight) ; x += vx, y += vy) {
-					if( board.GetMovableArea()[x, y] ) {		//何もなければ移動可能
-						movableArea[x, y] = true ;
-					} else if(IsThereAttackableEnemy(x, y) && board.areaUnit[x, y].unitId != 13) {		//キングでない敵ユニットなら攻撃可能エリアとなる
-						movableArea[x, y] = true ;
+			if(vy == 0) {
+				continue ;
+			}
+			jumped = false ;
+			for(x = posx , y = posy + vy; y >= 0 && y < board.areaHeight; y += vy) {
+				if( board.GetMovableArea()[x, y] ) {		//何もなければ移動可能
+					movableArea[x, y] = true ;
+				} else if( IsThereAttackableEnemy(x, y) ) {	//敵ユニットなら攻撃可能エリアとなる
+					movableArea[x, y] = true ;
+					if( !jumped ) {
+						jumped = true ;
+					} else {
 						break ;
+					}
+				} else {
+					if( !jumped ) {
+						jumped = true ;
 					} else {
 						break ;
 					}

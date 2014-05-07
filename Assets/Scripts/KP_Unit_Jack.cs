@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class KP_Unit_King : KP_Unit {
-	
+public class KP_Unit_Jack : KP_Unit {
+
 	// Use this for initialization
 	protected override void Awake () {
 		base.Awake() ;
@@ -15,13 +15,13 @@ public class KP_Unit_King : KP_Unit {
 	
 	public override void InitializeUnit () {
 		base.InitializeUnit() ;
-		unitId = 13 ;
+		unitId = 11 ;
 		if(team == 0) {
-			unitName = "KING" ;
+			unitName = "WIZARD" ;
 		} else {
-			unitName = "KING" ;
+			unitName = "MAGE" ;
 		}
-		
+
 		InitializeStatus() ;
 		
 		return;
@@ -32,8 +32,15 @@ public class KP_Unit_King : KP_Unit {
 		rank = 1 ;
 	}
 
+	//アップキープ効果:このターン,このユニットとキング以外のユニットのランクを1上げる
 	public void SetUpkeep () {
-		game.summonPower += 1 ;
+		for(int y = 0; y < board.areaHeight; ++y) {
+			for(int x = 0; x < board.areaWidth; ++x) {
+				if(board.areaUnit[x, y] && board.areaUnit[x, y].team == team && board.areaUnit[x, y] != this && board.areaUnit[x, y].unitId != 13) {
+					board.areaUnit[x, y].rank += 1 ;
+				}
+			}
+		}
 	}
 	
 	public override bool[,] GetMovableArea () {
@@ -48,33 +55,17 @@ public class KP_Unit_King : KP_Unit {
 			}
 		}
 		
+		x = posx ;
+		y = posy + ((team == 0) ? -1 : 1) ;
 		//ユニットの移動範囲に合わせて
-		for(int vy = -1; vy <= 1; ++vy) {
-			for(int vx = -1; vx <= 1; ++vx) {
-				if(vx == 0 && vy == 0) {
-					continue ;
-				}
-				x = posx + vx ;
-				y = posy + vy ;
-				if(x >= 0 && x < board.areaWidth && y >= 0 && y < board.areaHeight) {
-					if( board.GetMovableArea()[x, y] ) {		//何もなければ移動可能
-						movableArea[x, y] = true ;
-					} else if( IsThereAttackableEnemy(x, y) ) {	//敵ユニットなら攻撃可能エリアとなる
-						movableArea[x, y] = true ;
-					}
-				}
+		if(y >= 0 && y < board.areaHeight) {
+			if( board.GetMovableArea()[x, y] ) {		//何もなければ移動可能
+				movableArea[x, y] = true ;
+			} else if( IsThereAttackableEnemy(x, y) ) {	//敵ユニットなら攻撃可能エリアとなる
+				movableArea[x, y] = true ;
 			}
 		}
 		
 		return movableArea ;
-	}
-
-	override public void Die () {
-		for(int i = 0; i < game.playerNum; ++i) {
-			if(i != team) {
-				game.winners[i] = true ;
-			}
-		}
-		base.Die() ;
 	}
 }

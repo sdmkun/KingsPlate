@@ -3,17 +3,16 @@ using System.Collections;
 
 public class KP_Unit : MonoBehaviour {
 
-	public KP_Game game ;		//配置されているゲーム
-	public KP_Board board ;		//配置されているゲームのボード
+	[HideInInspector]public KP_Game game ;		//配置されているゲーム
+	[HideInInspector]public KP_Board board ;		//配置されているゲームのボード
 	
 	public GameObject model1 ;	//humanチームのモデル
 	public GameObject model2 ;	//monsterチームのモデル（その内に配列化）
-	private GameObject modelInstance ;	//インスタンス化したモデルのプレハブ
+	protected GameObject modelInstance ;	//インスタンス化したモデルのプレハブ
 
 	public int unitId ;			//ユニット種の番号
 	public string unitName ;	//表示されるユニット名
 	public int summonCost ;		//召喚に必要なコスト
-	public int summonPower ;	//召喚できるコスト
 	public int rank ;			//倒すのに必要な合計ランク（またはその攻撃力）
 	
 	public int team ;			//現在所属しているチーム（初期チームの値も保持するか？）
@@ -58,22 +57,22 @@ public class KP_Unit : MonoBehaviour {
 	}
 	
 	virtual public void InitializeUnit () {
-		modelInstance.renderer.material.color = new Color(team == 1 ? 1.0f : 0.2f, 0.2f, team == 0 ? 1.0f : 0.2f, 1.0f) ;
+		modelInstance.renderer.material.color = new Color(team == 0 ? 0.2f : 0.9f, team == 0 ? 0.2f : 0.9f, team == 0 ? 0.2f : 0.8f, 1.0f) ;
+	}
+
+	//summonCostとrankは外部から変更されるため再計算の際の初期化が必要
+	virtual public void InitializeStatus () {
 	}
 	
 	virtual public bool[,] GetMovableArea () {
 		return null;
 	}
 
-	//デフォルトでは自軍ユニットの周囲のみ召喚可能
+	//デフォルトでは自軍ユニットの周囲かつBARRIERでないマスに召喚可能
 	virtual public bool[,] GetSummonableArea () {
 		bool[,] summonableArea = new bool[board.areaWidth, board.areaHeight] ;
 		int x, y ;
-		for(y = 0; y < board.areaHeight; ++y) {
-			for(x = 0; x < board.areaWidth; ++x) {
-				summonableArea[x, y] = false ;
-			}
-		}
+		int tx, ty ;
 		
 		for(y = 0; y < board.areaHeight; ++y) {
 			for(x = 0; x < board.areaWidth; ++x) {
@@ -83,7 +82,10 @@ public class KP_Unit : MonoBehaviour {
 							if(vx == 0 && vy == 0) {
 								continue ;
 							}
-							if(x + vx >= 0 && x + vx < board.areaWidth && y + vy >= 0 && y + vy < board.areaHeight && !board.areaUnit[x + vx, y + vy]) {
+							tx = x + vx ;
+							ty = y + vy ;
+							if(tx >= 0 && tx < board.areaWidth && ty >= 0 && ty < board.areaHeight &&
+												   board.GetSummonableArea()[tx, ty] && game.areaEnchant[team][tx, ty] != KP_Game.ENCHANT.BARRIER) {
 								summonableArea[x + vx, y + vy] = true ;
 							}
 						}
@@ -105,6 +107,14 @@ public class KP_Unit : MonoBehaviour {
 	//ユニットを破壊するときは（Destroyではなく）このメソッドを呼ぶ
 	virtual public void Die () {
 		Destroy(gameObject) ;
+	}
+
+	//指定したグリッドに移動可能で攻撃可能な（ランク条件の満たす）敵ユニットがいるか？
+	protected bool IsThereAttackableEnemy (int x, int y) {
+		if(board.areaUnit[x, y] && board.areaUnit[x, y].team != team && board.areaUnit[x, y].rank <= game.checkedRank[team][x, y]) {
+			return true ;
+		}
+		return false ;
 	}
 	
 	void OnGUI () {
