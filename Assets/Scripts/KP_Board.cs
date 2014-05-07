@@ -3,10 +3,10 @@ using System.Collections;
 
 public class KP_Board : MonoBehaviour {
 	
-	[HideInInspector]public int areaWidth;		//マップ幅
-	[HideInInspector]public int areaHeight;		//マップ長さ
-	[HideInInspector]public AREA[,] areaField;	//マップに配置されている障害物など
-	[HideInInspector]public KP_Unit[,] areaUnit;	//マップに配置されているユニット
+	[HideInInspector]public int areaWidth ;			//マップ幅
+	[HideInInspector]public int areaHeight ;		//マップ長さ
+	[HideInInspector]public AREA[,] areaField ;		//マップに配置されている障害物など
+	[HideInInspector]public KP_Unit[,] areaUnit ;	//マップに配置されているユニット
 
 	public enum AREA {
 		NONE = 0, WALL, RIVER, UNIT, NUM_MAX
@@ -37,6 +37,7 @@ public class KP_Board : MonoBehaviour {
 	protected void ApplyBoardSize () {
 		transform.localScale = new Vector3(areaWidth, transform.localScale.y, areaHeight) ;
 	}
+
 	//ボードのエリア表現（障害物等）を表示
 	protected void DisplayAreaField() {
 		for(int y = 0; y < areaHeight; ++y) {
@@ -52,18 +53,20 @@ public class KP_Board : MonoBehaviour {
 		}
 	}
 	
-	virtual public int[,] GetMovableArea () {
-		return (int[,])areaField.Clone() ;
+	virtual public bool[,] GetMovableArea () {
+		return GetSummonableArea() ;
 	}
-	
-	virtual public int[,] GetSummonableArea () {
-		int[,] summonableArea = new int[areaWidth, areaHeight] ;
-		areaField.CopyTo(summonableArea, 0) ;
+
+	//グリッドに障害物がなくユニットが存在しなければ召喚可能
+	virtual public bool[,] GetSummonableArea () {
+		bool[,] summonableArea = new bool[areaWidth, areaHeight] ;
 		
-		for(int j = 0; j < areaHeight; ++j) {
-			for(int i = 0; i < areaWidth; ++i) {
-				if(areaUnit[i,j] != null) {
-					summonableArea[i,j] = (int)AREA.UNIT;
+		for(int y = 0; y < areaHeight; ++y) {
+			for(int x = 0; x < areaWidth; ++x) {
+				if( areaField[x, y] == AREA.NONE && !areaUnit[x, y] ) {
+					summonableArea[x, y] = true ;
+				} else {
+					summonableArea[x, y] = false ;
 				}
 			}
 		}
